@@ -1,0 +1,134 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d
+
+  consul:
+    image: hashicorp/consul:1.17
+    container_name: consul
+    command: agent -dev -client=0.0.0.0
+    ports:
+      - "8500:8500"
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 15s
+      timeout: 15s
+      retries: 10
+      start_period: 30s
+
+  auth-service:
+    build: ./auth-service
+    container_name: auth-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      - postgres
+      - consul
+
+  booking-service:
+    build: ./booking-service
+    container_name: booking-service
+    ports:
+      - "8082:8082"
+    depends_on:
+      postgres:
+        condition: service_started
+      consul:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+
+  match-service:
+    build: ./match-service
+    container_name: match-service
+    ports:
+      - "8083:8083"
+    depends_on:
+      postgres:
+        condition: service_started
+      consul:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy   # ← attend que RabbitMQ soit vraiment prêt
+
+  equipment-service:
+    build: ./equipment-service
+    container_name: equipment-service
+    ports:
+      - "8084:8084"
+    depends_on:
+      postgres:
+        condition: service_started
+      consul:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+
+  notification-service:
+    build: ./notification-service
+    container_name: notification-service
+    ports:
+      - "8085:8085"
+    depends_on:
+      postgres:
+        condition: service_started
+      consul:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+
+  payment-service:
+    build: ./payment-service
+    container_name: payment-service
+    ports:
+      - "8086:8086"
+    depends_on:
+      postgres:
+        condition: service_started
+      consul:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+
+  gateway:
+    build: ./gateway
+    container_name: gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - consul
+      - auth-service
+      - booking-service
+      - match-service
+      - equipment-service
+      - notification-service
+      - payment-service
+
+  frontend:
+    build: ./frontend
+    container_name: tennis-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - gateway
+
+volumes:
+  postgres_data:
