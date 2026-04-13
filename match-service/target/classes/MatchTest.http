@@ -1,0 +1,10 @@
+POST http://localhost:8080/auth/api/auth/register
+
+Content-Type: application/json
+
+{
+  "email": "salma@tennis.com",
+  "password": "123456",
+  "firstName": "Salma",
+  "lastName": "Ben Ali"
+}

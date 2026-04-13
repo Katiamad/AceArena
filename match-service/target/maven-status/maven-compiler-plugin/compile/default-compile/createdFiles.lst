@@ -1,0 +1,16 @@
+com\tennis\matchservice\dto\MatchResponseDTO$MatchResponseDTOBuilder.class
+com\tennis\matchservice\evenements\MatchEvent.class
+com\tennis\matchservice\controllers\MatchController.class
+com\tennis\matchservice\entities\Match$MatchBuilder.class
+com\tennis\matchservice\MatchServiceApplication.class
+com\tennis\matchservice\repositories\MatchRepository.class
+com\tennis\matchservice\config\RabbitConfig.class
+com\tennis\matchservice\entities\MatchRequest.class
+com\tennis\matchservice\repositories\MatchParticipantRepository.class
+com\tennis\matchservice\dto\MatchRequestDTO.class
+com\tennis\matchservice\entities\MatchParticipant.class
+com\tennis\matchservice\dto\MatchResponseDTO.class
+com\tennis\matchservice\entities\Match.class
+com\tennis\matchservice\entities\MatchParticipant$MatchParticipantBuilder.class
+com\tennis\matchservice\entities\MatchStatus.class
+com\tennis\matchservice\service\NotificationProducer.class
