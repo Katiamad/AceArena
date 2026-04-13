@@ -1,0 +1,131 @@
+
+### 1. REGISTER - Créer un nouvel utilisateur
+POST http://localhost:8081/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "salma1@tennis.com",
+  "password": "123456",
+  "firstName": "Salma",
+  "lastName": "Ben Ali"
+}
+
+> {%
+    client.global.set("token", response.body.token);
+    client.test("Register OK", function() {
+        client.assert(response.status === 200, "Status attendu 200, reçu : " + response.status);
+        client.assert(response.body.token !== null, "Token absent");
+    });
+%}
+
+###
+
+### 2. REGISTER - Email déjà utilisé (doit retourner 400)
+POST http://localhost:8081/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "salma@tennis.com",
+  "password": "123456",
+  "firstName": "Salma",
+  "lastName": "Ben Ali"
+}
+
+> {%
+    client.test("Register email dupliqué", function() {
+        client.assert(response.status === 400, "Status attendu 400, reçu : " + response.status);
+        client.assert(response.body.message === "Email déjà utilisé", "Message inattendu");
+    });
+%}
+
+###
+
+### 3. LOGIN - Connexion valide
+POST http://localhost:8081/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "salma@tennis.com",
+  "password": "123456"
+}
+
+> {%
+    client.global.set("token", response.body.token);
+    client.test("Login OK", function() {
+        client.assert(response.status === 200, "Status attendu 200, reçu : " + response.status);
+        client.assert(response.body.token !== null, "Token absent");
+    });
+%}
+
+###
+
+### 4. LOGIN - Mauvais mot de passe (doit retourner 401)
+POST http://localhost:8081/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "salma@tennis.com",
+  "password": "MAUVAIS_MDP"
+}
+
+> {%
+    client.test("Login mauvais mdp", function() {
+        client.assert(response.status === 401, "Status attendu 401, reçu : " + response.status);
+    });
+%}
+
+###
+
+### 5. LOGIN - Email inexistant (doit retourner 401)
+POST http://localhost:8081/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "inexistant@tennis.com",
+  "password": "123456"
+}
+
+> {%
+    client.test("Login email inexistant", function() {
+        client.assert(response.status === 401, "Status attendu 401, reçu : " + response.status);
+    });
+%}
+
+###
+
+### 6. ME - Route protégée avec token valide
+GET http://localhost:8081/api/auth/me
+Authorization: Bearer {{token}}
+
+> {%
+    client.test("ME avec token OK", function() {
+        client.assert(response.status === 200, "Status attendu 200, reçu : " + response.status);
+        client.assert(response.body.userId !== null, "userId absent");
+        client.assert(response.body.email !== null, "email absent");
+    });
+%}
+
+###
+
+### 7. ME - Sans token (doit retourner 401)
+GET http://localhost:8081/api/auth/me
+
+> {%
+    client.test("ME sans token", function() {
+        client.assert(response.status === 401, "Status attendu 401, reçu : " + response.status);
+    });
+%}
+
+###
+
+### 8. ME - Token invalide (doit retourner 401)
+GET http://localhost:8081/api/auth/me
+Authorization: Bearer token_completement_faux
+
+> {%
+    client.test("ME token invalide", function() {
+        client.assert(response.status === 401, "Status attendu 401, reçu : " + response.status);
+    });
+%}
+
+###
